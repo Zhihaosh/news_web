@@ -27,7 +27,7 @@ class SignUpPage extends React.Component {
       return;
     }
     // Post registeration data
-    fetch('http://localhost:80/auth/signup', {
+    fetch('http://35.166.173.49:80/auth/signup', {
       method: 'POST',
       cache: false,
       headers: {
