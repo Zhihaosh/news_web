@@ -1,0 +1,4 @@
+{
+  "mongoDbUri": "localhost:27017/newsweb",
+  "jwtSecret": "a secret phrase!!"
+}

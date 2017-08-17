@@ -1,0 +1,13 @@
+newspaper
+scipy
+numpy
+python-dateutil
+sklearn
+lxml
+python-jsonrpc
+pymongo
+pika
+redis
+requests
+pandas
+tensorflow
