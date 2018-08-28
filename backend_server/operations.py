@@ -12,8 +12,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'common'))
 
 import mongodb_client
 import news_recommendation_service_client
+from kafka import KafkaProducer
 
-from cloudAMQP_client import CloudAMQPClient
 
 
 REDIS_HOST = "localhost"
@@ -26,11 +26,9 @@ NEWS_LIMIT = 100
 NEWS_LIST_BATCH_SIZE = 10
 USER_NEWS_TIME_OUT_IN_SECONDS = 60
 
-LOG_CLICKS_TASK_QUEUE_URL = 'amqp://oxdkitad:qJD1uGJ-dDOGLhzTE-PYNYHysYdVSyfm@donkey.rmq.cloudamqp.com/oxdkitad'
-LOG_CLICKS_TASK_QUEUE_NAME = "tap-news-log-news-task-queue"
 
 redis_client = redis.StrictRedis(REDIS_HOST, REDIS_PORT, db=0)
-cloudAMQP_client = CloudAMQPClient(LOG_CLICKS_TASK_QUEUE_URL, LOG_CLICKS_TASK_QUEUE_NAME)
+producer = KafkaProducer(bootstrap_servers='localhost:1234', 'tap-news-log-news-task-queue', value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
 def getNewsSummariesForUser(user_id, page_num):
     page_num = int(page_num)
@@ -78,4 +76,4 @@ def logNewsClickForUser(user_id, news_id):
     print 123445
     message = {'userId' : user_id, 'newsId' : news_id, 'timestamp' : str(datetime.utcnow())}
     print 11111111111
-    cloudAMQP_client.sendMessage(message)
+    producer.send(message)

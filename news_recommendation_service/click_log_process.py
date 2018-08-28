@@ -12,12 +12,12 @@ p = (1-α)p
 import news_classes
 import os
 import sys
-
+import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'common'))
 
 import mongodb_client
-from cloudAMQP_client import CloudAMQPClient
+from kafka import KafkaConsumer
 
 NUM_OF_CLASSES = 17
 INITIAL_P = 1.0 / NUM_OF_CLASSES
@@ -25,13 +25,11 @@ ALPHA = 0.1
 
 SLEEP_TIME_IN_SECONDS = 1
 
-LOG_CLICKS_TASK_QUEUE_URL = 'amqp://oxdkitad:qJD1uGJ-dDOGLhzTE-PYNYHysYdVSyfm@donkey.rmq.cloudamqp.com/oxdkitad'
-LOG_CLICKS_TASK_QUEUE_NAME = "tap-news-log-news-task-queue"
+consumer = KafkaConsumer(bootstrap_servers='localhost:1234', 'tap-news-log-news-task-queue')
 
 PREFERENCE_MODEL_TABLE_NAME = "user_preference_model"
 NEWS_TABLE_NAME = "news"
 
-cloudAMQP_client = CloudAMQPClient(LOG_CLICKS_TASK_QUEUE_URL, LOG_CLICKS_TASK_QUEUE_NAME)
 
 def handle_message(msg):
     if msg is None or not isinstance(msg, dict) :
@@ -87,8 +85,8 @@ def handle_message(msg):
 
 def run():
     while True:
-        if cloudAMQP_client is not None:
-            msg = cloudAMQP_client.getMessage()
+        if consumer is not None:
+            msg = consumer.poll()
             if msg is not None:
                 # Parse and process the task
                 try:
@@ -97,7 +95,7 @@ def run():
                     print e
                     pass
             # Remove this if this becomes a bottleneck.
-            cloudAMQP_client.sleep(SLEEP_TIME_IN_SECONDS)
+            time.sleep(SLEEP_TIME_IN_SECONDS)
 
 if __name__ ==  "__main__":
     run()

@@ -3,7 +3,7 @@
 import datetime
 import os
 import sys
-
+import time
 from dateutil import parser
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -12,10 +12,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'common'))
 import mongodb_client
 import news_topic_modeling_service_client
 
-from cloudAMQP_client import CloudAMQPClient
+from kafka import KafkaConsumer
 
-DEDUPE_NEWS_TASK_QUEUE_URL = "amqp://kbsylnro:aePMEklD0z0mTmoDivBy3S00yA9GGzKC@donkey.rmq.cloudamqp.com/kbsylnro"
-DEDUPE_NEWS_TASK_QUEUE_NAME = "tap-news-dedupe-news-task-queue"
 
 SLEEP_TIME_IN_SECOUNDS = 1
 
@@ -23,7 +21,7 @@ NEWS_TABLE_NAME = "news"
 
 SAME_NEWS_SIMILARITY_THRESHOLD = 0.9
 
-cloudAMQP_client  = CloudAMQPClient(DEDUPE_NEWS_TASK_QUEUE_URL, DEDUPE_NEWS_TASK_QUEUE_NAME)
+client = KafkaConsumer(bootstrap_servers='localhost:1232','tap-news-dedupe-news-task-queue')
 
 
 def handle_message(msg):
@@ -74,12 +72,12 @@ def handle_message(msg):
 
     db[NEWS_TABLE_NAME].replace_one({'digest': task['digest']}, task, upsert=True)
 while True:
-    if cloudAMQP_client is not None:
-        msg = cloudAMQP_client.getMessage();
+    if client is not None:
+        msg = client.poll()
         if msg is not None:
             try:
                 handle_message(msg)
             except Exception as e:
                 print e
                 pass
-        cloudAMQP_client.sleep(SLEEP_TIME_IN_SECOUNDS)
+        time.sleep(SLEEP_TIME_IN_SECOUNDS)
